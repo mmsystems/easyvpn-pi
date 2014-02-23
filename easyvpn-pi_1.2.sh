@@ -22,6 +22,7 @@ if [ "$?" == "0" ]
     whiptail --infobox "Installing OpenVPN and OpenSSL...OK" 10 40
     sleep 2
   else
+    clear
     exit 1
 fi
 
