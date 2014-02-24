@@ -39,41 +39,41 @@ fi
 #Modify vars file of easy-rsa
 sed -i 's/`pwd`/\/etc\/openvpn\/easy-rsa/g' /etc/openvpn/easy-rsa/vars
 
-#Definimos variable para la ruta del directorio easy-rsa
+#Variable to define the directory path of easy-rsa
 DER=/etc/openvpn/easy-rsa
 
-#Ejecutamos el archivo vars para que se carguen las variables
+#Run the file "vars" to load the variables.
 whiptail --infobox "Loading vars..." 10 40
 source $DER/vars > /dev/null 2>&1
 
-#Borramos cualquier configuración anterior que pudiera haber
+#Erase any previous settings
 whiptail --infobox "Clean KEY repository..." 10 40
 bash $DER/clean-all > /dev/null 2>&1
 
-#Creamos enlace simbolico a openssl
+#Create symbolic link to openssl
 ln -s $DER/openssl-1.0.0.cnf $DER/openssl.cnf
 
-#Creamos el certificado de la CA
+#Create the CA certificate
 whiptail --infobox "Creating initial CA..." 10 40
 $DER/pkitool --initca > /dev/null 2>&1
 
-#Creamos la key del servidor
+#Create the server key
 whiptail --infobox "Creating SERVER certificate..." 10 40
 $DER/pkitool --server server > /dev/null 2>&1
 
-#Creamos la key para el cliente
+#Create the client key
 CLIENT_NAME=$(whiptail --inputbox "Client name:" 8 40 3>&1 1>&2 2>&3)
-#Es necesario que la variable KEY_CN sea diferente en la creacion de cada usuario (incluyendo el servidor)
-#Por lo que la asignamos el valor del nombre del usuario, que cambiará en cada caso.
+#The variable "KEY_CN" must be different in the creation of each user (including the server). 
+#In the variable "KEY_CN" is assigned the user name. 
 whiptail --infobox "Creating CLIENT certificate..." 10 40
 KEY_CN=$CLIENT_NAME
 $DER/pkitool $CLIENT_NAME > /dev/null 2>&1
 
-#Creamos el DIFFIE-HELLMAN
+#Create DIFFIE-HELLMAN
 whiptail --infobox "Creating DIFFIE HELLMAN... (this may take awhile!)" 10 60
 $DER/build-dh > /dev/null 2>&1
 
-#Se crea el archivo openvpn.conf en la ruta: /etc/openvpn
+#The openvpn.conf file is created in the path: /etc/openvpn
 echo "dev tun
 proto udp
 port 1194
