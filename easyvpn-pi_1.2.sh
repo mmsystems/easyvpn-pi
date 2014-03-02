@@ -132,16 +132,23 @@ fi
 
 #Send certificates by mail
 function send_mail() {
-         #Fix sendemail bug in SSL/TLS email
-         sed -i 's/SSLv3 TLSv1/SSLv3/g' /usr/bin/sendemail
          #Get gmail credentials and destination email
          GMAIL_USR=$(whiptail --inputbox "Gmail user (user@gmail.com): " 8 46 3>&1 1>&2 2>&3)
          GMAIL_PWD=$(whiptail --passwordbox "Gmail password: " 8 46 3>&1 1>&2 2>&3)
          GMAIL_DST=$(whiptail --inputbox "Send to: " 8 46 3>&1 1>&2 2>&3)
          whiptail --infobox "Send mail from $GMAIL_USR to "$GMAIL_DST"..." 10 80
          sendemail -f $GMAIL_USR -t $GMAIL_DST -s smtp.gmail.com:587 -u "OpenVPN Certs and key ($CLIENT_NAME)" -m "Mail sent by easyopenvpn" -a /etc/openvpn/clients/$CLIENT_NAME.zip -xu $GMAIL_USR -xp $GMAIL_PWD -o tls=yes > /dev/null 2>&1
-         whiptail --infobox "Send mail from $GMAIL_USR to "$GMAIL_DST"...OK" 10 80
-         sleep 2
+         if [ "$?" == "0" ]
+           then
+             whiptail --infobox "Send mail from $GMAIL_USR to "$GMAIL_DST"...OK" 10 80
+             sleep 3
+           else
+             whiptail --yesno " Send mail from $GMAIL_USR to "$GMAIL_DST"...FAIL\n\nWant to retry sending?" 10 80
+               if [ "$?" == "0" ]
+                 then
+                   send_mail
+               fi
+         fi
 }
 
 #asks if you want to send.
@@ -157,6 +164,8 @@ if [ "$?" == "0" ]
             then
               whiptail --infobox "Installing sendemail..." 10 30
               apt-get -y install sendemail libio-socket-ssl-perl libnet-ssleay-perl > /dev/null 2>&1
+              #Fix sendemail bug in SSL/TLS email
+              sed -i 's/SSLv3 TLSv1/SSLv3/g' /usr/bin/sendemail
               whiptail --infobox "Installing sendemail...OK" 10 30
               sleep 2
               send_mail
