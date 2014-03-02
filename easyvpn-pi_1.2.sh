@@ -11,15 +11,15 @@ if [ "$UID" != "0" ]
     exit 1
 fi
 
-#Install packets openvpn and openssl
-whiptail --yesno "Do you want to install OpenVPN and OpenSSL?" 7 60
+#Install packets openvpn, openssl and zip
+whiptail --yesno "Do you want to install OpenVPN, OpenSSL and zip?" 7 60
 if [ "$?" == "0" ]
   then
     whiptail --infobox "Updating APT data base..." 10 40
     apt-get update > /dev/null 2>&1
-    whiptail --infobox "Installing OpenVPN and OpenSSL..." 10 40
+    whiptail --infobox "Installing OpenVPN, OpenSSL and zip..." 10 50
     apt-get install -y openvpn openssl > /dev/null 2>&1
-    whiptail --infobox "Installing OpenVPN and OpenSSL...OK" 10 40
+    whiptail --infobox "Installing OpenVPN, OpenSSL and zip...OK" 10 50
     sleep 2
   else
     clear
@@ -105,6 +105,10 @@ IP_ETH0=`ifconfig eth0 | grep "inet addr:" | awk '{ print $2 }' | awk -F: '{ pri
 
 #Definimos las reglas de iptables para que se ejecuten en cada inicio del sistema
 IP_RPI=$(whiptail --inputbox "Raspberry IP: (Current IP: $IP_ETH0)" 8 50 3>&1 1>&2 2>&3)
+if [ "$IP_RPI" == "" ]
+  then
+    IP_RPI=$IP_ETH0
+fi
 sed -i '$ i\iptables -t nat -A INPUT -i eth0 -p udp -m udp --dport 1194 -j ACCEPT' /etc/rc.local
 sed -i "$ i\iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j SNAT --to-source $IP_RPI" /etc/rc.local
 
