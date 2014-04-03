@@ -96,14 +96,14 @@ push \""dhcp-option DNS 8.8.4.4\""
 log-append /var/log/openvpn
 comp-lzo" > /etc/openvpn/openvpn.conf
 
-#Activamos el IP_FORWARD para el reenvío de paquetes, editando
-#el archivo /etc/sysctl.conf
+#Activate the IP_FORWARD for packet forwarding, editing 
+#the file /etc/sysctl.conf
 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
 
-#Guardamos la IP actual de eth0 en una variable.
+#Keep the current IP of ETH0 in a variable.
 IP_ETH0=`ifconfig eth0 | grep "inet addr:" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
 
-#Definimos las reglas de iptables para que se ejecuten en cada inicio del sistema
+#Define the iptables rules to run on every system start
 IP_RPI=$(whiptail --inputbox "Raspberry IP: (Current IP: $IP_ETH0)" 8 50 3>&1 1>&2 2>&3)
 if [ "$IP_RPI" == "" ]
   then
@@ -112,14 +112,13 @@ fi
 sed -i '$ i\iptables -t nat -A INPUT -i eth0 -p udp -m udp --dport 1194 -j ACCEPT' /etc/rc.local
 sed -i "$ i\iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j SNAT --to-source $IP_RPI" /etc/rc.local
 
-#Creamos una carpeta donde se guardaran los certificados de conexion para los clientes
-#y guardamos allí sus credenciales
+#Create a folder where the certificates are stored and copy them there credentials.
 mkdir -p /etc/openvpn/clients
 zip /etc/openvpn/clients/$CLIENT_NAME.zip /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/easy-rsa/keys/$CLIENT_NAME.crt /etc/openvpn/easy-rsa/keys/$CLIENT_NAME.key
 whiptail --msgbox "Credentials stored in /etc/openvpn/clients" 8 46
 
 function reboot_pi() {
-#Es necesario reiniciar para que se actualicen todos los cambios, preguntamos si se quiere reiniciar.
+#A reboot is required for all changes are updated. Asks if you want to restart.
 whiptail --yesno "NEED REBOOT =========== Reboot now?" 10 17
 if [ "$?" == "0" ]
   then
@@ -177,5 +176,5 @@ if [ "$?" == "0" ]
     exit 1
 fi
 
-#Ask for reboot
+#Asks for reboot
 reboot_pi
