@@ -18,7 +18,7 @@ if [ "$?" == "0" ]
     whiptail --infobox "Updating APT data base..." 10 40
     apt-get update > /dev/null 2>&1
     whiptail --infobox "Installing OpenVPN, OpenSSL and zip..." 10 50
-    apt-get install -y openvpn openssl > /dev/null 2>&1
+    apt-get install -y openvpn openssl zip > /dev/null 2>&1
     whiptail --infobox "Installing OpenVPN, OpenSSL and zip...OK" 10 50
     sleep 2
   else
