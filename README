@@ -11,7 +11,7 @@ INSTALL:
 $ sudo apt-get update
 $ sudo apt-get -y install ca-certificates
 
-#Clone de repo in your system
+#Clone the repo in your system
 $ git clone https://github.com/mmsystems/easyvpn-pi
 $ cd easyvpn-pi
 
