@@ -114,7 +114,7 @@ sed -i "$ i\iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j SNAT --to-s
 
 #Create a folder where the certificates are stored and copy them there credentials.
 mkdir -p /etc/openvpn/clients
-zip /etc/openvpn/clients/$CLIENT_NAME.zip /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/easy-rsa/keys/$CLIENT_NAME.crt /etc/openvpn/easy-rsa/keys/$CLIENT_NAME.key
+zip -j /etc/openvpn/clients/$CLIENT_NAME.zip /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/easy-rsa/keys/$CLIENT_NAME.crt /etc/openvpn/easy-rsa/keys/$CLIENT_NAME.key
 whiptail --msgbox "Credentials stored in /etc/openvpn/clients" 8 46
 
 function reboot_pi() {
