@@ -15,10 +15,13 @@ fi
 whiptail --yesno "Do you want to install OpenVPN, OpenSSL and zip?" 7 60
 if [ "$?" == "0" ]
   then
+    echo -e "Updating APT data base..."
     whiptail --infobox "Updating APT data base..." 10 40
     apt-get update > /dev/null 2>&1
+    echo -e "Installing OpenVPN, OpenSSL and zip..."
     whiptail --infobox "Installing OpenVPN, OpenSSL and zip..." 10 50
     apt-get install -y openvpn openssl zip > /dev/null 2>&1
+    echo -e "Installing OpenVPN, OpenSSL and zip...OK"
     whiptail --infobox "Installing OpenVPN, OpenSSL and zip...OK" 10 50
     sleep 2
   else
@@ -43,10 +46,12 @@ sed -i 's/`pwd`/\/etc\/openvpn\/easy-rsa/g' /etc/openvpn/easy-rsa/vars
 DER=/etc/openvpn/easy-rsa
 
 #Run the file "vars" to load the variables.
+echo -e "Loading vars..."
 whiptail --infobox "Loading vars..." 10 40
 source $DER/vars > /dev/null 2>&1
 
 #Erase any previous settings
+echo -e "Clean KEY repository..."
 whiptail --infobox "Clean KEY repository..." 10 40
 bash $DER/clean-all > /dev/null 2>&1
 
@@ -54,22 +59,26 @@ bash $DER/clean-all > /dev/null 2>&1
 ln -s $DER/openssl-1.0.0.cnf $DER/openssl.cnf
 
 #Create the CA certificate
+echo -e "Creating initial CA..."
 whiptail --infobox "Creating initial CA..." 10 40
 $DER/pkitool --initca > /dev/null 2>&1
 
 #Create the server key
+echo -e "Creating SERVER certificate..."
 whiptail --infobox "Creating SERVER certificate..." 10 40
 $DER/pkitool --server server > /dev/null 2>&1
 
 #Create the client key
 CLIENT_NAME=$(whiptail --inputbox "Client name:" 8 40 3>&1 1>&2 2>&3)
 #The variable "KEY_CN" must be different in the creation of each user (including the server). 
-#In the variable "KEY_CN" is assigned the user name. 
+#In the variable "KEY_CN" is assigned the user name.
+echo -e "Creating CLIENT certificate..."
 whiptail --infobox "Creating CLIENT certificate..." 10 40
 KEY_CN=$CLIENT_NAME
 $DER/pkitool $CLIENT_NAME > /dev/null 2>&1
 
 #Create DIFFIE-HELLMAN
+echo -e "Creating DIFFIE HELLMAN... (this may take awhile!)"
 whiptail --infobox "Creating DIFFIE HELLMAN... (this may take awhile!)" 10 60
 $DER/build-dh > /dev/null 2>&1
 
@@ -86,7 +95,7 @@ group nogroup
 server 10.8.0.0 255.255.255.0
 persist-key
 persist-tun
-status /var/log/openvpn-status.log
+status /var/log/openvpn-status.log 15
 verb 3
 client-to-client
 push \""redirect-gateway def1\""
@@ -109,8 +118,16 @@ if [ "$IP_RPI" == "" ]
   then
     IP_RPI=$IP_ETH0
 fi
-sed -i '$ i\iptables -t nat -A INPUT -i eth0 -p udp -m udp --dport 1194 -j ACCEPT' /etc/rc.local
-sed -i "$ i\iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j SNAT --to-source $IP_RPI" /etc/rc.local
+
+#Chek if the iptables rules are already created in rc.local
+if [ "$(cat /etc/rc.local | grep "iptables -t nat -A INPUT -i eth0 -p udp -m udp --dport 1194 -j ACCEPT")" == "" ]
+  then
+    sed -i '$ i\iptables -t nat -A INPUT -i eth0 -p udp -m udp --dport 1194 -j ACCEPT' /etc/rc.local
+fi
+if [ "$(cat /etc/rc.local | grep "iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j SNAT --to-source $IP_RPI")" == "" ]
+  then
+    sed -i "$ i\iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j SNAT --to-source $IP_RPI" /etc/rc.local
+fi
 
 #Create a folder where the certificates are stored and copy them there credentials.
 mkdir -p /etc/openvpn/clients
@@ -135,10 +152,12 @@ function send_mail() {
          GMAIL_USR=$(whiptail --inputbox "Gmail user (user@gmail.com): " 8 46 3>&1 1>&2 2>&3)
          GMAIL_PWD=$(whiptail --passwordbox "Gmail password: " 8 46 3>&1 1>&2 2>&3)
          GMAIL_DST=$(whiptail --inputbox "Send to: " 8 46 3>&1 1>&2 2>&3)
+         echo -e "Send mail from $GMAIL_USR to "$GMAIL_DST"..."
          whiptail --infobox "Send mail from $GMAIL_USR to "$GMAIL_DST"..." 10 80
          sendemail -f $GMAIL_USR -t $GMAIL_DST -s smtp.gmail.com:587 -u "OpenVPN Certs and key ($CLIENT_NAME)" -m "Mail sent by easyopenvpn" -a /etc/openvpn/clients/$CLIENT_NAME.zip -xu $GMAIL_USR -xp $GMAIL_PWD -o tls=yes > /dev/null 2>&1
          if [ "$?" == "0" ]
            then
+             echo -e "Send mail from $GMAIL_USR to "$GMAIL_DST"...OK"
              whiptail --infobox "Send mail from $GMAIL_USR to "$GMAIL_DST"...OK" 10 80
              sleep 3
            else
@@ -161,10 +180,12 @@ if [ "$?" == "0" ]
         whiptail --yesno "Install sendemail and its dependencies?\n\nPackets to be installed:\n\n * sendemail\n * libio-socket-ssl-perl\n * libnet-ssleay-perl" 15 46
           if [ "$?" == "0" ]
             then
+              echo -e "Installing sendemail..."
               whiptail --infobox "Installing sendemail..." 10 30
               apt-get -y install sendemail libio-socket-ssl-perl libnet-ssleay-perl > /dev/null 2>&1
               #Fix sendemail bug in SSL/TLS email
               sed -i 's/SSLv3 TLSv1/SSLv3/g' /usr/bin/sendemail
+              echo -e "Installing sendemail...OK"
               whiptail --infobox "Installing sendemail...OK" 10 30
               sleep 2
               send_mail
