@@ -18,12 +18,12 @@ if [ "$?" == "0" ]
     whiptail --infobox "Updating APT data base..." 10 40
     apt-get update > /dev/null 2>&1
     whiptail --infobox "Installing OpenVPN and OpenSSL..." 10 40
-    apt-get install -y openvpn openssl > /dev/null 2>&1
+    apt-get install -y openvpn openssl zip > /dev/null 2>&1
     whiptail --infobox "Installing OpenVPN and OpenSSL...OK" 10 40
     sleep 2
-  else
-    clear
-    exit 1
+#  else
+#    clear
+#    exit 1
 fi
 
 #Copy easy-rsa example files and scripts
