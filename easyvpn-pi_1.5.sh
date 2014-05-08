@@ -3,6 +3,8 @@
 # +-----------------------------+---------------------------------+----------------------+
 # | Marcos Españadero González  |  ciberentropia.blogspot.com.es  |  mmsysmail@gmail.com |
 # +-----------------------------+---------------------------------+----------------------+
+# | Juan Alonso Sanz            |  blog.juanalo.com               |  juanalo@gmail.com   |
+# +-----------------------------+---------------------------------+----------------------+
 
 #Script variables
 ER="/usr/share/doc/openvpn/examples/easy-rsa/2.0"
