@@ -44,7 +44,7 @@ RESTART="0"
 
 #A reboot is required for all changes are updated. Asks if you want to restart.
 function reboot_pi() {
-   whiptail --yesno "NEED REBOOT =========== Reboot now?" 10 17
+   whiptail --yesno "NEED REBOOT ........... Reboot now?" 10 17
    if [ "$?" == "0" ]
      then
        reboot
