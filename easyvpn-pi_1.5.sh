@@ -122,11 +122,11 @@ function ovpn_ios(){
    connect-retry 5
    resolv-retry 60
    dev tun
-   remote $EXT_DNS 1194 UDP
+   remote $EXT_DNS 1194
    <ca>" > $OVPN
    awk /BEGIN/,/END/ < $CA  >> $OVPN
    echo "</ca>
-   <key>" >> $ovpn
+   <key>" >> $OVPN
    awk /BEGIN/,/END/ < $KEY >> $OVPN
    echo "</key>
    <cert>" >> $OVPN
@@ -150,7 +150,7 @@ function ovpn_files(){
    client
    dev tun
    proto $PROTO
-   remote $EXT_DNS 1194 UDP
+   remote $EXT_DNS 1194 
    resolv-retry infinite
    nobind
    persist-key
@@ -162,7 +162,7 @@ function ovpn_files(){
    awk /BEGIN/,/END/ < $CA  >> $OVPN
    echo "</ca>
    <key>" >> $OVPN
-   awk /BEGIN/,/END/ < $key >> $OVPN
+   awk /BEGIN/,/END/ < $KEY >> $OVPN
    echo "</key>
    <cert>" >> $OVPN
    awk /BEGIN/,/END/ < $CERT >> $OVPN
@@ -200,27 +200,6 @@ function check_packets(){
    fi
 }
 
-#Generates ca certificate
-function ca_cert(){
-  local gen_ca="0"
-  if [ "$REBOOT" == "0" ]
-    then
-      whiptail --yesno "Want to generate CA certificate?" 8 42
-      if [ "$?" == "0" ]
-        then
-		  gen_ca="1"
-      fi
-    else
-	  gen_ca="1"
-  fi
-  if [ "$gen_ca" == "1" ]
-    then
-      echo "Creating initial CA..."
-      whiptail --infobox "Creating initial CA..." 10 40
-      $DER/pkitool --initca > /dev/null 2>&1
-	  RESTART="1"
-  fi
-}
 
 #Generates server certificates
 function server_cert(){
@@ -237,9 +216,22 @@ function server_cert(){
   fi
   if [ "$gen_crt" == "1" ]
     then
+      #Erase any previous settings
+      echo "Clean KEY repository..."
+      whiptail --infobox "Clean KEY repository..." 10 40
+      bash $DER/clean-all > /dev/null 2>&1
+      #generating CA certificate echo "Creating initial CA..."
+      echo "Creating CA certificate..."
+      whiptail --infobox "Creating initial CA..." 10 40
+      $DER/pkitool --initca > /dev/null 2>&1
+      #generating SERVER certificate
       echo "Creating SERVER certificate..."
       whiptail --infobox "Creating SERVER certificate..." 10 40
       $DER/pkitool --server server > /dev/null 2>&1
+      #Create DIFFIE-HELLMAN
+      echo "Creating DIFFIE HELLMAN... (this may take a while!)"
+      whiptail --infobox "Creating DIFFIE HELLMAN... (this may take a while!)" 10 60
+      $DER/build-dh > /dev/null 2>&1
       RESTART="1"
   fi
 }
@@ -255,10 +247,6 @@ function client_cert(){
    KEY_CN=$CLIENT_NAME
    $DER/pkitool $CLIENT_NAME > /dev/null 2>&1
 
-   #Create DIFFIE-HELLMAN
-   echo "Creating DIFFIE HELLMAN... (this may take a while!)"
-   whiptail --infobox "Creating DIFFIE HELLMAN... (this may take a while!)" 10 60
-   $DER/build-dh > /dev/null 2>&1
 }
 
 #Main script starts here
@@ -290,11 +278,6 @@ echo "Loading vars..."
 whiptail --infobox "Loading vars..." 10 40
 source $DER/vars > /dev/null 2>&1
 
-#Erase any previous settings
-#TODO: check wether is necesary to clean key repository
-echo "Clean KEY repository..."
-whiptail --infobox "Clean KEY repository..." 10 40
-bash $DER/clean-all > /dev/null 2>&1
 
 #Create symbolic link to openssl
 if [ ! -f $DER/openssl.cnf ]
@@ -328,9 +311,6 @@ EXT_DNS=$(whiptail --inputbox "External IP or Dynamic DNS" 8 50 3>&1 1>&2 2>&3)
 #  then
 #    EXT_PORT=$PORT
 #fi
-
-#Create the CA certificate if installing packages or user wants
-ca_cert
 
 #Create the server key if installing packages or user wants
 server_cert
